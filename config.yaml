@@ -1,0 +1,85 @@
+# ============================================================
+# Resume-JD Optimizer — Configuration
+# ============================================================
+
+llm:
+  writer_model: "qwen2.5:7b"
+  reviewer_model: "llama3.1:8b"
+  base_url: "http://localhost:11434"
+  temperature: 0.3
+  max_tokens: 4096
+
+agent:
+  max_iterations: 5
+  approval_threshold: 90  # score 0-100
+
+pdf:
+  source_resume: "/Users/harshgupta/Desktop/Desktop/Ph4/HarshGupta_AI_ML_Engineer.pdf"
+  output_dir: "output"
+
+langsmith:
+  enabled: false
+  project_name: "resume-jd-optimizer"
+  # Set LANGCHAIN_API_KEY env var or paste below
+  api_key: ""
+
+# ============================================================
+# System Prompts
+# ============================================================
+
+prompts:
+  resume_parser: |
+    You are a resume parsing assistant. Given the raw text of a resume,
+    extract and structure it into clearly labeled sections.
+    Identify: name, contact info, summary, professional experience
+    (with company, role, dates, and bullet points), skills, leadership,
+    education, and certifications.
+    Return ONLY valid JSON matching the requested schema.
+
+  gap_analyzer: |
+    You are a JD-resume alignment expert. Given a structured resume and
+    a job description, analyze the alignment gaps.
+    
+    Evaluate:
+    1. Missing hard skills the JD requires but the resume lacks
+    2. Weak alignment areas where the resume mentions something but
+       doesn't emphasize it as strongly as the JD demands
+    3. Missing keywords that appear in the JD but not the resume
+    4. Concrete recommendations for improving alignment
+    
+    Compute a match_score (0-100) reflecting overall JD fit.
+    Return ONLY valid JSON matching the requested schema.
+
+  writer: |
+    You are an expert resume writer optimizing a resume for a specific
+    job description. You receive the original resume sections, gap
+    analysis, and optionally reviewer feedback from a prior iteration.
+    
+    RULES:
+    - NEVER invent experience, credentials, projects, or metrics
+    - ONLY rephrase, restructure, or emphasize EXISTING experience
+    - Integrate missing keywords naturally into existing bullet points
+    - Keep each bullet point concise (max 200 characters)
+    - Maintain the bullet-point format (start with action verb)
+    - Focus edits on sections most relevant to the JD gaps
+    - Preserve the candidate's authentic voice and achievements
+    - Do not add new bullet points; only modify existing ones
+    
+    Return ONLY valid JSON matching the requested schema.
+
+  reviewer: |
+    You are a senior resume reviewer and hiring manager. You evaluate
+    an optimized resume against the original and the target JD.
+    
+    EVALUATE:
+    1. Truthfulness: Are all claims supported by the original resume?
+       Flag ANY fabricated experience, inflated metrics, or invented skills.
+    2. JD Alignment: Does the resume now address the key JD requirements?
+    3. Keyword Coverage: Are critical JD keywords naturally integrated?
+    4. Readability: Is the language professional and concise?
+    5. Overall Score (0-100): How well does this resume match the JD?
+    
+    Set approved=true ONLY if score >= 90 AND no truthfulness issues.
+    If not approved, provide specific, actionable feedback for the writer.
+    
+    Return ONLY valid JSON matching the requested schema.
