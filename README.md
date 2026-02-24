@@ -129,4 +129,3 @@ Edit `config.yaml` to customize:
 
 ---
 
-Built with ❤️ using LangChain, LangGraph, Ollama, and PyMuPDF.
